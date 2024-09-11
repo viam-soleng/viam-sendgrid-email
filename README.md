@@ -1,23 +1,20 @@
 # sendgrid-email modular resource
 
 This module implements the [rdk generic API](https://github.com/rdk/generic-api) in a mcvella:messaging:sendgrid-email model.
-With this model, you can...
+With this model, you can send emails with the Sendgrid email service.
 
 ## Requirements
 
-_Add instructions here for any requirements._
-
-``` bash
-```
+A Sendgrid account must be set up with a verified email address, and a Sendgrid API key must be acquired.
 
 ## Build and run
 
 To use this module, follow the instructions to [add a module from the Viam Registry](https://docs.viam.com/registry/configure/#add-a-modular-resource-from-the-viam-registry) and select the `rdk:generic:mcvella:messaging:sendgrid-email` model from the [`mcvella:messaging:sendgrid-email` module](https://app.viam.com/module/rdk/mcvella:messaging:sendgrid-email).
 
-## Configure your generic
+## Configure your email service
 
 > [!NOTE]  
-> Before configuring your generic, you must [create a machine](https://docs.viam.com/manage/fleet/machines/#add-a-new-machine).
+> Before configuring your email service, you must [create a machine](https://docs.viam.com/manage/fleet/machines/#add-a-new-machine).
 
 Navigate to the **Config** tab of your machine's page in [the Viam app](https://app.viam.com/).
 Click on the **Components** subtab and click **Create component**.
@@ -28,7 +25,7 @@ On the new component panel, copy and paste the following attribute template into
 
 ```json
 {
-  TODO: INSERT SAMPLE ATTRIBUTES
+  "api_key": "<your sendgrid api key>"
 }
 ```
 
@@ -37,29 +34,51 @@ On the new component panel, copy and paste the following attribute template into
 
 ### Attributes
 
-The following attributes are available for `rdk:generic:mcvella:messaging:sendgrid-email` generics:
+The following attributes are available for `mcvella:messaging:sendgrid-email` service configuration:
 
 | Name | Type | Inclusion | Description |
 | ---- | ---- | --------- | ----------- |
-| `todo1` | string | **Required** |  TODO |
-| `todo2` | string | Optional |  TODO |
+| `api_key` | string | **Required** |  Sendgrid API key |
+| `default_from` | string | Optional |  Default Sendgrid verified email address to send from, optional as it can be passed on each send request. |
+| `preset_messages` | object | Optional|  An object with key (preset name) and value (object with subject and body) pairs that can be used to send pre-configured messages. HTML is accepted in the body of each. |
+| `enforce_preset` | boolean | Optional, default false |  If set to true, preset_messages must be configured and a preset message must be selected when sending. |
 
 ### Example configuration
 
 ```json
 {
-  TODO: INSERT SAMPLE CONFIGURATION(S)
+  "api_key": "SG.abc123-ds-er-23-da",
+  "enforce_preset": true,
+  "preset_messages": {
+    "welcome": {
+      "subject": "welcome to the service",
+      "body": "<b>Great to have you!</b>"
+    },
+    "alert": {
+      "subject": "Alert",
+      "body": "This is an alert message."
+    }
+  }
 }
 ```
 
-### Next steps
+## API
 
-_Add any additional information you want readers to know and direct them towards what to do next with this module._
-_For example:_ 
+The Sendgrid email service provides the [DoCommand](https://docs.viam.com/services/generic/#docommand) method from Viam's built-in [rdk:service:generic API](https://docs.viam.com/services/generic/)
 
-- To test your...
-- To write code against your...
+### do_command(*dictionary*)
 
-## Troubleshooting
+In the dictionary passed as a parameter to do_command(), you must specify a *command* by passing a the key *command* with one of the following values.
 
-_Add troubleshooting notes here._
+#### send
+
+When *send* is passed as the command, an email will be sent via the configured Sendgrid account.
+The following may also be passed:
+
+| Key | Type | Inclusion | Description |
+| ---- | ---- | --------- | ----------- |
+| `to` | string | **Required** |  The email to send the message to. |
+| `subject` | string | **Required** |  The email subject. |
+| `body` | string | Optional |  The email message text, HTML is accepted. |
+| `from` | string | Optional |  The sendgrid verified email address from which to send the message. If not specified, will use *default_from*, if configured. |
+| `preset` | string | Optional |  The name of a configured preset message, configured with preset_messages.  If the service is configured with enforce_preset=true, this becomes required. |

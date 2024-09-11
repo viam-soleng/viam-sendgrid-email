@@ -71,7 +71,7 @@ class sendgridEmail(Generic, Reconfigurable):
             self.preset_messages[p] = Preset(**preset_messages[p])
 
         self.enforce_preset = config.attributes.fields["enforce_preset"].bool_value or False
-        self.from_email = config.attributes.fields["from_email"].string_value or ""
+        self.from_email = config.attributes.fields["default_from"].string_value or ""
 
         api_key = config.attributes.fields["api_key"].string_value
         self.email_client = SendGridAPIClient(api_key)
