@@ -26,16 +26,19 @@ from sendgrid.helpers.mail import Mail
 
 LOGGER = getLogger(__name__)
 
-class preset():
+class Preset():
     subject: str
     body: str
 
+    def __init__(self, **kwargs):
+        for key, value in kwargs.items():
+            self.__dict__[key] = value
 class sendgridEmail(Generic, Reconfigurable):
 
     MODEL: ClassVar[Model] = Model(ModelFamily("mcvella", "messaging"), "sendgrid-email")
     email_client: SendGridAPIClient
     from_email: str
-    preset_messages: dict
+    preset_messages: dict = {}
     enforce_preset: bool
 
     # Constructor
@@ -65,9 +68,9 @@ class sendgridEmail(Generic, Reconfigurable):
         attributes = struct_to_dict(config.attributes)
         preset_messages = attributes.get("preset_messages") or {}
         for p in preset_messages:
-            self.preset_messages['p'] = preset(**preset_messages[p])
+            self.preset_messages[p] = Preset(**preset_messages[p])
 
-        self.enforce_preset = config.attributes.fields["from_email"].bool_value or False
+        self.enforce_preset = config.attributes.fields["enforce_preset"].bool_value or False
         self.from_email = config.attributes.fields["from_email"].string_value or ""
 
         api_key = config.attributes.fields["api_key"].string_value
@@ -87,7 +90,7 @@ class sendgridEmail(Generic, Reconfigurable):
             if command['command'] == 'send':
                 message_args = {}
                 if self.enforce_preset and not "preset" in command:
-                    return "preset message must be specified"
+                    return { "error" : "preset message must be specified" }
 
                 if 'preset' in command:
                     message_args['html_content'] = self.preset_messages[command['preset']].body
@@ -99,7 +102,7 @@ class sendgridEmail(Generic, Reconfigurable):
                 if 'to' in command:
                     message_args['to_emails'] = command['to']
                 else:
-                    return "'to' must be defined"
+                    return { "error": "'to' must be defined" }
                 
                 message_args['from_email'] = command['from'] or self.from_email
                 response = self.email_client.send(Mail(**message_args))
