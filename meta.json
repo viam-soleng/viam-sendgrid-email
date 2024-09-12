@@ -1,0 +1,14 @@
+{
+  "$schema": "https://dl.viam.dev/module.schema.json",
+  "module_id": "mcvella:sendgrid-email",
+  "visibility": "public",
+  "url": "https://github.com/mcvella/viam-sendgrid-email",
+  "description": "Send emails via Sendgrid API",
+  "models": [
+    {
+      "api": "rdk:service:generic",
+      "model": "mcvella:messaging:sendgrid-email"
+    }
+  ],
+  "entrypoint": "run.sh"
+}
