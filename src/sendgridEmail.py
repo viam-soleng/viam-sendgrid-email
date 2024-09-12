@@ -107,3 +107,5 @@ class sendgridEmail(Generic, Reconfigurable):
                 message_args['from_email'] = command['from'] or self.from_email
                 response = self.email_client.send(Mail(**message_args))
                 return {"status_code": response.status_code}
+    
+        return {"error": "command must be defined"}
