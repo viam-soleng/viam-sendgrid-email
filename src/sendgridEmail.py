@@ -104,7 +104,10 @@ class sendgridEmail(Generic, Reconfigurable):
                 else:
                     return { "error": "'to' must be defined" }
                 
-                message_args['from_email'] = command['from'] or self.from_email
+                if "from" in command:
+                    message_args['from_email'] = command['from']
+                else:
+                    message_args['from_email'] = self.from_email
                 response = self.email_client.send(Mail(**message_args))
                 return {"status_code": response.status_code}
     
