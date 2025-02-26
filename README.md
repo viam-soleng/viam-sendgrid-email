@@ -40,7 +40,8 @@ The following attributes are available for `mcvella:messaging:sendgrid-email` se
 | ---- | ---- | --------- | ----------- |
 | `api_key` | string | **Required** |  Sendgrid API key |
 | `default_from` | string | Optional |  Default Sendgrid verified email address to send from, optional as it can be passed on each send request. |
-| `preset_messages` | object | Optional|  An object with key (preset name) and value (object with subject and body) pairs that can be used to send pre-configured messages. HTML is accepted in the body of each. |
+| `default_from_name` | string | Optional |  Default from name to associate with the from address, optional as it can be passed on each send request, and if not present will use default_from as the name. |
+| `preset_messages` | object | Optional|  An object with key (preset name) and value (object with subject and body) pairs that can be used to send pre-configured messages. HTML is accepted in the body of each. Template strings can be embedded within double angle brackets, for example: <<to_replace>>|
 | `enforce_preset` | boolean | Optional, default false |  If set to true, preset_messages must be configured and a preset message must be selected when sending. |
 
 ### Example configuration
@@ -55,8 +56,8 @@ The following attributes are available for `mcvella:messaging:sendgrid-email` se
       "body": "<b>Great to have you!</b>"
     },
     "alert": {
-      "subject": "Alert",
-      "body": "This is an alert message."
+      "subject": "Alert: <<about>>",
+      "body": "This is an alert message about <<about>>."
     }
   }
 }
@@ -81,4 +82,6 @@ The following may also be passed:
 | `subject` | string | **Required** |  The email subject. |
 | `body` | string | Optional |  The email message text, HTML is accepted. |
 | `from` | string | Optional |  The sendgrid verified email address from which to send the message. If not specified, will use *default_from*, if configured. |
+| `from_name` | string | Optional |  A name to associate with the from email address. If not specified, will use *default_from_name*, if configured. |
 | `preset` | string | Optional |  The name of a configured preset message, configured with preset_messages.  If the service is configured with enforce_preset=true, this becomes required. |
+| `template_vars` | object | Optional | A key value pair of template parameter names and values to insert into preset messages. |
