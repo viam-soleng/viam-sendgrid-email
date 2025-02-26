@@ -7,4 +7,4 @@ from viam.resource.registry import Registry, ResourceCreatorRegistration
 
 from .sendgridEmail import sendgridEmail
 
-Registry.register_resource_creator(Generic.SUBTYPE, sendgridEmail.MODEL, ResourceCreatorRegistration(sendgridEmail.new, sendgridEmail.validate))
+Registry.register_resource_creator(Generic.API, sendgridEmail.MODEL, ResourceCreatorRegistration(sendgridEmail.new, sendgridEmail.validate))

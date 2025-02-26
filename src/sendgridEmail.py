@@ -2,12 +2,7 @@ from typing import ClassVar, Mapping, Sequence, Any, Dict, Optional, Tuple, Fina
 from typing_extensions import Self
 from typing import Final
 
-from viam.resource.types import RESOURCE_NAMESPACE_RDK, RESOURCE_TYPE_SERVICE, Subtype
-
-
-
-
-
+from viam.resource.types import RESOURCE_NAMESPACE_RDK, RESOURCE_TYPE_SERVICE
 from viam.module.types import Reconfigurable
 from viam.proto.app.robot import ComponentConfig
 from viam.proto.common import ResourceName, Vector3
@@ -22,7 +17,7 @@ import time
 import asyncio
 import os
 from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail
+from sendgrid.helpers.mail import Mail, Email
 
 LOGGER = getLogger(__name__)
 
@@ -38,6 +33,7 @@ class sendgridEmail(Generic, Reconfigurable):
     MODEL: ClassVar[Model] = Model(ModelFamily("mcvella", "messaging"), "sendgrid-email")
     email_client: SendGridAPIClient
     from_email: str
+    from_email_name: str
     preset_messages: dict = {}
     enforce_preset: bool
 
@@ -72,6 +68,7 @@ class sendgridEmail(Generic, Reconfigurable):
 
         self.enforce_preset = config.attributes.fields["enforce_preset"].bool_value or False
         self.from_email = config.attributes.fields["default_from"].string_value or ""
+        self.from_email_name = config.attributes.fields["default_from_name"].string_value or ""
 
         api_key = config.attributes.fields["api_key"].string_value
         self.email_client = SendGridAPIClient(api_key)
@@ -99,15 +96,32 @@ class sendgridEmail(Generic, Reconfigurable):
                     message_args['html_content'] = command['body'] or ""
                     message_args['subject'] = command['subject'] or ""
                 
+                # replace templated params
+                if 'template_vars' in command:
+                    for key, val in command['template_vars'].items():
+                        message_args['html_content'] = message_args['html_content'].replace(f"<<{key}>>", val)
+                        message_args['subject'] = message_args['subject'].replace(f"<<{key}>>", val)
+
                 if 'to' in command:
                     message_args['to_emails'] = command['to']
                 else:
                     return { "error": "'to' must be defined" }
                 
+                from_name = self.from_email_name
+                if "from_name" in command:
+                    from_name = message_args["from_name"]
+                
                 if "from" in command:
-                    message_args['from_email'] = command['from']
+                    if from_name != "":
+                        message_args['from_email'] = Email(email=command['from'], name=from_name)
+                    else:
+                        message_args['from_email'] = command['from']
                 else:
-                    message_args['from_email'] = self.from_email
+                    if from_name != "":
+                        message_args['from_email'] = Email(email=self.from_email, name=from_name)
+                    else:
+                        message_args['from_email'] = self.from_email
+
                 response = self.email_client.send(Mail(**message_args))
                 return {"status_code": response.status_code}
     
