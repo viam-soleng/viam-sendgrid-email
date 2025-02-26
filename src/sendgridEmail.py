@@ -2,7 +2,7 @@ from typing import ClassVar, Mapping, Sequence, Any, Dict, Optional, Tuple, Fina
 from typing_extensions import Self
 from typing import Final
 
-from viam.resource.types import RESOURCE_NAMESPACE_RDK, RESOURCE_TYPE_SERVICE, Subtype
+from viam.resource.types import RESOURCE_NAMESPACE_RDK, RESOURCE_TYPE_SERVICE
 from viam.module.types import Reconfigurable
 from viam.proto.app.robot import ComponentConfig
 from viam.proto.common import ResourceName, Vector3
@@ -36,7 +36,6 @@ class sendgridEmail(Generic, Reconfigurable):
     from_email_name: str
     preset_messages: dict = {}
     enforce_preset: bool
-    template_vars: dict = {}
 
     # Constructor
     @classmethod
@@ -70,7 +69,6 @@ class sendgridEmail(Generic, Reconfigurable):
         self.enforce_preset = config.attributes.fields["enforce_preset"].bool_value or False
         self.from_email = config.attributes.fields["default_from"].string_value or ""
         self.from_email_name = config.attributes.fields["default_from_name"].string_value or ""
-        self.template_vars = attributes.get("template_vars", {})
 
         api_key = config.attributes.fields["api_key"].string_value
         self.email_client = SendGridAPIClient(api_key)
@@ -99,9 +97,10 @@ class sendgridEmail(Generic, Reconfigurable):
                     message_args['subject'] = command['subject'] or ""
                 
                 # replace templated params
-                for key, val in self.template_vars.items():
-                    message_args['html_content'] = message_args['html_content'].replace(f"<<{key}>>", val)
-                    message_args['subject'] = message_args['subject'].replace(f"<<{key}>>", val)
+                if 'template_vars' in command:
+                    for key, val in command['template_vars'].items():
+                        message_args['html_content'] = message_args['html_content'].replace(f"<<{key}>>", val)
+                        message_args['subject'] = message_args['subject'].replace(f"<<{key}>>", val)
 
                 if 'to' in command:
                     message_args['to_emails'] = command['to']
