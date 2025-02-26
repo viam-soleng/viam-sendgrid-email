@@ -84,4 +84,4 @@ The following may also be passed:
 | `from` | string | Optional |  The sendgrid verified email address from which to send the message. If not specified, will use *default_from*, if configured. |
 | `from_name` | string | Optional |  A name to associate with the from email address. If not specified, will use *default_from_name*, if configured. |
 | `preset` | string | Optional |  The name of a configured preset message, configured with preset_messages.  If the service is configured with enforce_preset=true, this becomes required. |
-| `template_vars` | object | Optional | A key value pair of template parameter names and values to insert into preset messages. |
+| `template_vars` | object | Optional | A key/value pair of template parameter names and values to insert into preset messages. |

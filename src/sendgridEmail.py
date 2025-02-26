@@ -70,7 +70,6 @@ class sendgridEmail(Generic, Reconfigurable):
         self.enforce_preset = config.attributes.fields["enforce_preset"].bool_value or False
         self.from_email = config.attributes.fields["default_from"].string_value or ""
         self.from_email_name = config.attributes.fields["default_from_name"].string_value or ""
-        attributes = struct_to_dict(config.attributes)
         self.template_vars = attributes.get("template_vars", {})
 
         api_key = config.attributes.fields["api_key"].string_value
