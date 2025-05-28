@@ -123,8 +123,6 @@ class sendgridEmail(Generic, Reconfigurable):
                     else:
                         message_args['from_email'] = self.from_email
 
-                # TODO: remove this
-                # response = self.email_client.send(Mail(**message_args))
                 message = Mail(**message_args)
 
                 # Handle attachments if provided
