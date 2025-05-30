@@ -54,18 +54,20 @@ async def test_send_basic_email(mock_component_config, mock_sendgrid_client):
 
 @pytest.mark.asyncio
 async def test_send_with_attachment(mock_component_config, mock_sendgrid_client):
-    """Test sending an email with a base64-encoded attachment."""
+    """Test sending an email with multiple Base64-encoded attachments, verifying order."""
     mock_response = MagicMock()
     mock_response.status_code = 202
 
     # Mock the Mail object and its attachments
     mock_mail = MagicMock()
-    mock_attachment = MagicMock()
-    mock_attachment.file_name = "test.txt"
-    mock_attachment.file_type = "text/plain"
-    mock_mail.attachments = [mock_attachment]
+    mock_attachment1 = MagicMock()
+    mock_attachment1.file_name = "report.xlsx"
+    mock_attachment1.file_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    mock_attachment2 = MagicMock()
+    mock_attachment2.file_name = "chart.png"
+    mock_attachment2.file_type = "image/png"
+    mock_mail.attachments = [mock_attachment1, mock_attachment2]
 
-    # Use side_effect to capture call_args and return mock_response
     def send_side_effect(mail):
         mock_sendgrid_client.send.call_args = [(mock_mail,)]
         return mock_response
@@ -76,11 +78,96 @@ async def test_send_with_attachment(mock_component_config, mock_sendgrid_client)
         command = {
             "command": "send",
             "to": ["test@example.com"],
-            "subject": "Test with Attachment",
-            "body": "<p>Test Body</p>",
+            "subject": "Multi-Attachment Test",
+            "body": "<p>Here’s the report and chart.</p>",
             "attachments": [
                 {
-                    "content": base64.b64encode(b"test content").decode("utf-8"),
+                    "content": "U1BSSU5H",  # Placeholder for Excel
+                    "filename": "report.xlsx",
+                    "mime_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                },
+                {
+                    "content": "iVBORw0KGgo=",  # Minimal PNG
+                    "filename": "chart.png",
+                    "mime_type": "image/png"
+                }
+            ]
+        }
+        result = await email_service.do_command(command)
+        assert result == {"status_code": 202}
+        call_args = mock_sendgrid_client.send.call_args[0][0]
+        assert len(call_args.attachments) == 2
+        assert call_args.attachments[0].file_name == "report.xlsx"
+        assert call_args.attachments[0].file_type == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        assert call_args.attachments[1].file_name == "chart.png"
+        assert call_args.attachments[1].file_type == "image/png"
+
+@pytest.mark.asyncio
+async def test_send_with_common_mime_types(mock_component_config, mock_sendgrid_client):
+    """Test sending an email with attachments of common MIME types."""
+    mock_response = MagicMock()
+    mock_response.status_code = 202
+
+    # Mock the Mail object and its attachments
+    mock_mail = MagicMock()
+    mock_attachment1 = MagicMock()
+    mock_attachment1.file_name = "test.xlsx"
+    mock_attachment1.file_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    mock_attachment2 = MagicMock()
+    mock_attachment2.file_name = "test.pdf"
+    mock_attachment2.file_type = "application/pdf"
+    mock_attachment3 = MagicMock()
+    mock_attachment3.file_name = "test.jpg"
+    mock_attachment3.file_type = "image/jpeg"
+    mock_attachment4 = MagicMock()
+    mock_attachment4.file_name = "test.csv"
+    mock_attachment4.file_type = "text/csv"
+    mock_attachment5 = MagicMock()
+    mock_attachment5.file_name = "test.txt"
+    mock_attachment5.file_type = "text/plain"
+    mock_mail.attachments = [
+        mock_attachment1,
+        mock_attachment2,
+        mock_attachment3,
+        mock_attachment4,
+        mock_attachment5
+    ]
+
+    def send_side_effect(mail):
+        mock_sendgrid_client.send.call_args = [(mock_mail,)]
+        return mock_response
+    mock_sendgrid_client.send.side_effect = send_side_effect
+
+    with patch("src.sendgridEmail.SendGridAPIClient", return_value=mock_sendgrid_client):
+        email_service = sendgridEmail.new(mock_component_config, {})
+        command = {
+            "command": "send",
+            "to": ["test@example.com"],
+            "subject": "Common MIME Types Test",
+            "body": "<p>Testing various attachment types.</p>",
+            "attachments": [
+                {
+                    "content": "U1BSSU5H",  # Placeholder for Excel
+                    "filename": "test.xlsx",
+                    "mime_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                },
+                {
+                    "content": "JVBERi0xLjAK",  # Minimal PDF
+                    "filename": "test.pdf",
+                    "mime_type": "application/pdf"
+                },
+                {
+                    "content": "/9j/4AAQSkZJRgABAAEAAAAAAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAb/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdAAD/2Q==",  # 1x1 JPEG
+                    "filename": "test.jpg",
+                    "mime_type": "image/jpeg"
+                },
+                {
+                    "content": "bmFtZSxhZ2UKQWxpY2UsMzA=",  # Simple CSV
+                    "filename": "test.csv",
+                    "mime_type": "text/csv"
+                },
+                {
+                    "content": "SGVsbG8sIFdvcmxkIQ==",  # Plain text
                     "filename": "test.txt",
                     "mime_type": "text/plain"
                 }
@@ -89,9 +176,17 @@ async def test_send_with_attachment(mock_component_config, mock_sendgrid_client)
         result = await email_service.do_command(command)
         assert result == {"status_code": 202}
         call_args = mock_sendgrid_client.send.call_args[0][0]
-        assert len(call_args.attachments) == 1
-        assert call_args.attachments[0].file_name == "test.txt"
-        assert call_args.attachments[0].file_type == "text/plain"
+        assert len(call_args.attachments) == 5
+        assert call_args.attachments[0].file_name == "test.xlsx"
+        assert call_args.attachments[0].file_type == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        assert call_args.attachments[1].file_name == "test.pdf"
+        assert call_args.attachments[1].file_type == "application/pdf"
+        assert call_args.attachments[2].file_name == "test.jpg"
+        assert call_args.attachments[2].file_type == "image/jpeg"
+        assert call_args.attachments[3].file_name == "test.csv"
+        assert call_args.attachments[3].file_type == "text/csv"
+        assert call_args.attachments[4].file_name == "test.txt"
+        assert call_args.attachments[4].file_type == "text/plain"
 
 @pytest.mark.asyncio
 async def test_send_with_preset(mock_component_config, mock_sendgrid_client):
