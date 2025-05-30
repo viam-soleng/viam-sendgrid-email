@@ -1,7 +1,7 @@
 # sendgrid-email modular resource
 
 This module implements the [rdk generic API](https://github.com/rdk/generic-api) in a mcvella:messaging:sendgrid-email model.
-With this model, you can send emails with the Sendgrid email service.
+With this model, you can send emails with the Sendgrid email service, including support for attachments.
 
 ## Requirements
 
@@ -85,3 +85,30 @@ The following may also be passed:
 | `from_name` | string | Optional |  A name to associate with the from email address. If not specified, will use *default_from_name*, if configured. |
 | `preset` | string | Optional |  The name of a configured preset message, configured with preset_messages.  If the service is configured with enforce_preset=true, this becomes required. |
 | `template_vars` | object | Optional | A key/value pair of template parameter names and values to insert into preset messages. |
+| `attachments` | list[object] | Optional | A list of attachments, each with *content* (Base64-encoded string), *filename* (string), and *mime_type* (string). Attachments are added in the order listed. |
+
+### Attachments
+
+The *attachments* field allows you to include files in your email. Each attachment is an object with:
+* `content`: Base64-encoded string of the file content.
+* `filename`: Name of the file, including extension (e.g., `report.xlsx`).
+* `mime_type`: MIME type of the file, determining how email clients handle it.
+
+#### Common MIME types
+
+| File Type | Extension | MIME Type | 
+| ---- | ---- | --------- |
+| CSV | .csv | text/csv |
+| Plain Text | .txt | text/plain | 
+| JPEG Image | .jpg, .jpeg | image/jpeg |
+| PNG Image | .png | image/png |
+| Word Document | .docx | application/vnd.openxmlformats-officedocument.wordprocessingml.document |
+| Excel | .xlsx | application/vnd.openxmlformats-officedocument.spreadsheetml.sheet |
+| PDF | .pdf | application/pdf |
+
+For other MIME types, refer to the [IANA MIME Type Registry](https://www.iana.org/assignments/media-types/media-types.xhtml). If unspecified, mime_type defaults to application/octet-stream, which may prompt a download without preview.
+
+#### Notes
+* Ensure Base64-encoded attachment content is valid to avoid SendGrid API errors.
+* SendGrid imposes a 30MB limit on email size, including attachments. Compress large files (e.g., using ZIP) if needed.
+* Test attachment rendering in email clients (e.g., Gmail, Outlook) to confirm MIME type compatibility.
