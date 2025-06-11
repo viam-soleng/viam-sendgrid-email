@@ -17,7 +17,7 @@ import time
 import asyncio
 import os
 from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail, Email
+from sendgrid.helpers.mail import Mail, Email, Attachment, FileContent, FileName, FileType, Disposition
 
 LOGGER = getLogger(__name__)
 
@@ -28,6 +28,7 @@ class Preset():
     def __init__(self, **kwargs):
         for key, value in kwargs.items():
             self.__dict__[key] = value
+
 class sendgridEmail(Generic, Reconfigurable):
 
     MODEL: ClassVar[Model] = Model(ModelFamily("mcvella", "messaging"), "sendgrid-email")
@@ -109,7 +110,7 @@ class sendgridEmail(Generic, Reconfigurable):
                 
                 from_name = self.from_email_name
                 if "from_name" in command:
-                    from_name = message_args["from_name"]
+                    from_name = command["from_name"]
                 
                 if "from" in command:
                     if from_name != "":
@@ -122,7 +123,23 @@ class sendgridEmail(Generic, Reconfigurable):
                     else:
                         message_args['from_email'] = self.from_email
 
-                response = self.email_client.send(Mail(**message_args))
-                return {"status_code": response.status_code}
+                message = Mail(**message_args)
+
+                # Handle attachments if provided
+                if 'attachments' in command:
+                    for att in command['attachments']:
+                        attachment = Attachment()
+                        attachment.file_content = FileContent(att.get('content', ''))
+                        attachment.file_name = FileName(att.get('filename', 'attachment'))
+                        attachment.file_type = FileType(att.get('mime_type', 'application/octet-stream'))
+                        attachment.disposition = Disposition('attachment')
+                        message.add_attachment(attachment)
+                
+                try:
+                    response = self.email_client.send(message)
+                    return {"status_code": response.status_code}
+                except Exception as e:
+                    LOGGER.error(f"Failed to send email: {e}")
+                    return {"error": str(e)}
     
         return {"error": "command must be defined"}
