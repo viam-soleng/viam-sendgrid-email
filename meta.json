@@ -2,7 +2,7 @@
   "$schema": "https://dl.viam.dev/module.schema.json",
   "module_id": "mcvella:sendgrid-email",
   "visibility": "public",
-  "url": "https://github.com/mcvella/viam-sendgrid-email",
+  "url": "https://github.com/viam-soleng/viam-sendgrid-email",
   "description": "Send emails via Sendgrid API",
   "models": [
     {
