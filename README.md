@@ -1,6 +1,6 @@
 # sendgrid-email modular resource
 
-This module implements the [rdk generic API](https://github.com/rdk/generic-api) in a mcvella:messaging:sendgrid-email model.
+This module implements the [rdk generic API](https://github.com/rdk/generic-api) in a viam-soleng:messaging:sendgrid-email model.
 With this model, you can send emails with the Sendgrid email service, including support for attachments.
 
 ## Requirements
@@ -9,7 +9,7 @@ A Sendgrid account must be set up with a verified email address, and a Sendgrid 
 
 ## Build and run
 
-To use this module, follow the instructions to [add a module from the Viam Registry](https://docs.viam.com/registry/configure/#add-a-modular-resource-from-the-viam-registry) and select the `rdk:generic:mcvella:messaging:sendgrid-email` model from the [`mcvella:messaging:sendgrid-email` module](https://app.viam.com/module/rdk/mcvella:messaging:sendgrid-email).
+To use this module, follow the instructions to [add a module from the Viam Registry](https://docs.viam.com/registry/configure/#add-a-modular-resource-from-the-viam-registry) and select the `viam-soleng:messaging:sendgrid-email` model from the [`viam-soleng:messaging:sendgrid-email` module](https://app.viam.com/module/rdk/viam-soleng:messaging:sendgrid-email).
 
 ## Configure your email service
 
@@ -18,7 +18,7 @@ To use this module, follow the instructions to [add a module from the Viam Regis
 
 Navigate to the **Config** tab of your machine's page in [the Viam app](https://app.viam.com/).
 Click on the **Components** subtab and click **Create component**.
-Select the `generic` type, then select the `mcvella:messaging:sendgrid-email` model.
+Select the `generic` type, then select the `viam-soleng:messaging:sendgrid-email` model.
 Click **Add module**, then enter a name for your generic and click **Create**.
 
 On the new component panel, copy and paste the following attribute template into your generic’s **Attributes** box:
@@ -34,7 +34,7 @@ On the new component panel, copy and paste the following attribute template into
 
 ### Attributes
 
-The following attributes are available for `mcvella:messaging:sendgrid-email` service configuration:
+The following attributes are available for `viam-soleng:messaging:sendgrid-email` service configuration:
 
 | Name | Type | Inclusion | Description |
 | ---- | ---- | --------- | ----------- |

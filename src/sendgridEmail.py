@@ -31,7 +31,7 @@ class Preset():
 
 class sendgridEmail(Generic, Reconfigurable):
 
-    MODEL: ClassVar[Model] = Model(ModelFamily("mcvella", "messaging"), "sendgrid-email")
+    MODEL: ClassVar[Model] = Model(ModelFamily("viam-soleng", "messaging"), "sendgrid-email")
     email_client: SendGridAPIClient
     from_email: str
     from_email_name: str
